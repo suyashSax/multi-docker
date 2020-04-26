@@ -1,0 +1,22 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t suyash20/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true suyash20/react-test npm run test
+
+after_success:
+    - docker build -t suyash20/multi-client ./client
+    - docker build -t suyash20/multi-server ./server
+    - docker build -t suyash20/multi-worker ./worker
+    - docker build -t suyash20/multi-nginx ./nginx
+
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    
+    - docker push suyash20/multi-client
+    - docker push suyash20/multi-server
+    - docker push suyash20/multi-worker
+    - docker push suyash20/multi-nginx
